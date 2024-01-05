@@ -5,7 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node build/src/server.js",
+    "start": "node build/server.js",
     "dev": "nodemon index.js",
     "build": "tsc -p . && cp package.json ./build/package.json && cp package-lock.json ./build/package-lock.json && cp .env ./build/.env",
     "lint": "eslint src/**/*.ts",
