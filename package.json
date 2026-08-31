@@ -13,6 +13,7 @@
     "build": "tsc -p .",
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:browser": "npx -y serve examples",
     "lint": "eslint src tests --ext .ts",
     "lint-fix": "eslint --fix src tests --ext .ts",
     "pretty": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",

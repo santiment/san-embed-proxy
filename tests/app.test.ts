@@ -24,6 +24,13 @@ describe('CORS', () => {
 		expect(res.headers['access-control-allow-origin']).toBe('https://embed.santiment.net')
 	})
 
+	it('allows any localhost origin', async () => {
+		const res = await request(app).get('/health').set('Origin', 'http://localhost:62463')
+
+		expect(res.status).toBe(200)
+		expect(res.headers['access-control-allow-origin']).toBe('http://localhost:62463')
+	})
+
 	it('rejects unknown origins with 403', async () => {
 		const res = await request(app).post('/graphql').set('Origin', 'https://evil.example.com').send({ query: '{}' })
 

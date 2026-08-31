@@ -13,6 +13,14 @@ const server = createApp().listen(port, () => {
 	logger.info(`san-embed-proxy listening on port ${port}`)
 })
 
+server.on('error', (err: NodeJS.ErrnoException) => {
+	if (err.code === 'EADDRINUSE') {
+		logger.error(`Port ${port} is already in use — is the proxy already running (check \`docker compose ps\`)?`)
+		process.exit(1)
+	}
+	throw err
+})
+
 function shutdown(): void {
 	server.close(() => process.exit(0))
 }

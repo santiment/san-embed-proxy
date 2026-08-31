@@ -6,6 +6,7 @@ import { CORS_ORIGINS } from './origins'
 
 const SAN_API_URL = process.env.SAN_API_URL || 'https://api.santiment.net/graphql'
 const UPSTREAM_TIMEOUT_MS = 30_000
+const LOCALHOST_ORIGIN = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/
 
 export default function createApp(): express.Express {
 	const app = express()
@@ -15,9 +16,10 @@ export default function createApp(): express.Express {
 	app.use(
 		cors({
 			origin: (origin, callback) => {
-				// Requests without an Origin header (curl, health checks) are not
-				// browser CORS requests — let them through.
-				if (!origin || CORS_ORIGINS.has(origin)) {
+				// No Origin header (curl, health checks) means it is not a browser
+				// CORS request. Localhost origins are local dev pages — they could
+				// hit the API without a browser anyway, so blocking them adds nothing.
+				if (!origin || LOCALHOST_ORIGIN.test(origin) || CORS_ORIGINS.has(origin)) {
 					callback(null, true)
 					return
 				}
