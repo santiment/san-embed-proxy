@@ -1,6 +1,3 @@
-/* eslint-disable import/prefer-default-export */
-export const CORS_ORIGINS = new Set([
-	// Add your CORS allowed origins here
-	'http://localhost:8080',
-	'https://embed.santiment.net',
-])
+// Origins allowed to call this proxy from a browser. Requests without an
+// Origin header (curl, health checks, server-to-server) are always allowed.
+export const CORS_ORIGINS = new Set(['http://localhost:8080', 'https://embed.santiment.net'])

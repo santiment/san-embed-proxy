@@ -1,18 +1,39 @@
-## Setup application data and .env variables
+# san-embed-proxy
 
-- Set `SAN_API_KEY` in `.env` (API key can be generated here: [https://app.santiment.net/account#api-keys](https://app.santiment.net/account#api-keys))
-- Update supported origins in [./src/origins.ts](./src/origins.ts). If the request to the proxy-server comes from another origin, it will result in a CORS error.
-- To forward request to a proxy-server, add proxy's url as a `dataUrl=` search parameter to the embedded charts IFrame. Example: `https://embed.santiment.net/chart?dataUrl=https%3A%2F%2Fexample.com%3A8080%2Fgraphql&ps=weth&...`
+A small proxy that lets [embedded Santiment charts](https://embed.santiment.net) fetch data with your Santiment API key, without exposing the key to the browser. It forwards `POST /graphql` to `https://api.santiment.net/graphql` and adds the `Authorization` header from `SAN_API_KEY`.
 
-## Start application using Docker
+## Setup
 
-- Run `docker compose up`
-- Service will be available on port `8080`.
+1. Copy `.env.example` to `.env` and set `SAN_API_KEY` ([generate a key](https://app.santiment.net/account#api-keys)).
+2. Add every origin your charts are embedded on to [`src/origins.ts`](./src/origins.ts). Browser requests from other origins are rejected with a CORS error.
+3. Point the chart iframe at your deployed proxy by passing its `/graphql` URL (URL-encoded) as the `dataUrl` query parameter:
 
-## Start application manually (using npm)
+   ```
+   https://embed.santiment.net/chart?dataUrl=https%3A%2F%2Fyour-proxy.example.com%2Fgraphql&ps=weth&...
+   ```
 
-- Install the dependencies `npm install`
-- Create the build `npm run build`
-- Start the application `npm run start`
-- Service will be available on port `8080`.
+## Run with Docker
 
+```sh
+docker compose up
+```
+
+## Run with npm
+
+```sh
+npm install
+npm run build
+npm start
+```
+
+Either way the service listens on port `8080` (override with `PORT`). Verify with `curl localhost:8080/health`.
+
+## Development
+
+- `npm run dev` — start with reload on change
+- `npm test` — run the tests
+- `npm run lint` — lint
+
+## Security note
+
+CORS only restricts browsers. Anyone who can reach the proxy URL directly can spend your API quota, so don't advertise the URL and restrict access at the network level if you can.
