@@ -1,14 +1,14 @@
-FROM node:18
-
-ENV NODE_ENV production
+FROM node:22-alpine
 
 WORKDIR /app
 
-COPY ./ /app
+COPY package*.json ./
+RUN npm ci --ignore-scripts
 
-RUN npm install --ignore-scripts
-RUN npm run build
+COPY . .
+RUN npm run build && npm prune --omit=dev
 
-EXPOSE 8080 
+ENV NODE_ENV=production
+EXPOSE 8080
 
-CMD npm start
+CMD ["node", "build/server.js"]

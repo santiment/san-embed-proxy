@@ -1,42 +1,29 @@
-import * as http from 'http'
-import { AddressInfo } from 'net'
-import App from './App'
-import logger from './lib/logger'
+import 'dotenv/config'
+import createApp from './app'
+import logger from './logger'
 
-const app: App = new App()
-let server: http.Server
-
-function serverError(error: NodeJS.ErrnoException): void {
-	if (error.syscall !== 'listen') {
-		throw error
-	}
-	// handle specific error codes here.
-	throw error
+if (!process.env.SAN_API_KEY) {
+	logger.error('SAN_API_KEY is not set. Copy .env.example to .env and fill it in.')
+	process.exit(1)
 }
 
-function serverListening(): void {
-	const addressInfo: AddressInfo = <AddressInfo>server.address()
-	logger.info(`Listening on ${addressInfo.address}:${process.env.PORT || 8080}`)
-}
+const port = Number(process.env.PORT) || 8080
 
-app.init()
-	.then(() => {
-		app.express.set('port', process.env.PORT || 8080)
-
-		server = app.httpServer
-		server.on('error', serverError)
-		server.on('listening', serverListening)
-		server.listen(process.env.PORT || 8080)
-	})
-	.catch((err: Error) => {
-		logger.info('app.init error')
-		logger.error(err.name)
-		logger.error(err.message)
-		logger.error(err.stack)
-	})
-
-process.on('unhandledRejection', (reason: Error) => {
-	logger.error('Unhandled Promise Rejection: reason:', reason.message)
-	logger.error(reason.stack)
-	// application specific logging, throwing an error, or other logic here
+const server = createApp().listen(port, () => {
+	logger.info(`san-embed-proxy listening on port ${port}`)
 })
+
+server.on('error', (err: NodeJS.ErrnoException) => {
+	if (err.code === 'EADDRINUSE') {
+		logger.error(`Port ${port} is already in use — is the proxy already running (check \`docker compose ps\`)?`)
+		process.exit(1)
+	}
+	throw err
+})
+
+function shutdown(): void {
+	server.close(() => process.exit(0))
+}
+
+process.on('SIGTERM', shutdown)
+process.on('SIGINT', shutdown)

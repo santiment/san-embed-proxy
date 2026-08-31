@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>san-embed-proxy browser test</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 640px; margin: 3rem auto; padding: 0 1rem; }
+  label { display: block; margin-bottom: .25rem; }
+  input { width: 100%; padding: .5rem; margin-bottom: 1rem; box-sizing: border-box; }
+  button { padding: .5rem 1rem; margin-right: .5rem; }
+  pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; min-height: 3rem; white-space: pre-wrap; }
+  .err { color: #b00020; }
+</style>
+</head>
+<body>
+  <h1>san-embed-proxy browser test</h1>
+  <p>Sends the same cross-origin requests an embedded chart would, from this page's origin.</p>
+
+  <label for="url">Proxy /graphql URL</label>
+  <input id="url" value="http://localhost:8080/graphql" />
+
+  <button id="key">Check API key</button>
+  <button id="price">Fetch ETH price (7d)</button>
+
+  <pre id="out">Click a button.</pre>
+
+  <script>
+    const out = document.getElementById('out')
+
+    async function run(query) {
+      out.textContent = 'Loading…'
+      out.className = ''
+      try {
+        const res = await fetch(document.getElementById('url').value, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query }),
+        })
+        const json = await res.json()
+        out.textContent = `HTTP ${res.status}\n\n${JSON.stringify(json, null, 2)}`
+      } catch (err) {
+        out.className = 'err'
+        const isLocal = /^https?:\/\/(localhost|127\.0\.0\.1)(:|$)/.test(location.origin)
+        out.textContent =
+          `${err}\n\n` +
+          (isLocal
+            ? 'Localhost origins are always allowed — is the proxy running on the URL above?'
+            : `If the proxy is running, this is a CORS rejection: add this page's origin\n(${location.origin}) to src/origins.ts and restart the proxy.`)
+      }
+    }
+
+    document.getElementById('key').onclick = () => run('{ currentUser { id } }')
+    document.getElementById('price').onclick = () =>
+      run(
+        '{ getMetric(metric: "price_usd") { timeseriesData(slug: "ethereum", from: "utc_now-7d", to: "utc_now", interval: "1d") { datetime value } } }',
+      )
+  </script>
+</body>
+</html>

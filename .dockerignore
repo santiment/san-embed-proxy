@@ -1,2 +1,10 @@
+.env
+.git
+.husky
+build
+coverage
+examples
+logs
 node_modules
 npm-debug.log
+tests
